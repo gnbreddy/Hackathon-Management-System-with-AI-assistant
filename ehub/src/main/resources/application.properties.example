@@ -11,5 +11,5 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-# Import local configuration (contains sensitive API keys)
-spring.config.import=optional:classpath:application-local.properties
+# Gemini API Key - Replace with your actual key
+gemini.api.key=YOUR_GEMINI_API_KEY_HERE
