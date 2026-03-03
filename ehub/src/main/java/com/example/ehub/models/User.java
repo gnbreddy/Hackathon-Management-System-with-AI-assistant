@@ -26,16 +26,38 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(nullable = false)
+    private String fullName;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(unique = true, nullable = false)
+    private String registrationNumber;
+
     // Default constructor required by JPA
     public User() {}
 
     // Constructor for easy object creation
-    public User(String username, String passwordHash, Role role) {
+// Updated Constructor
+    public User(String username, String passwordHash, Role role, String fullName, String email, String registrationNumber) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
+        this.fullName = fullName;
+        this.email = email;
+        this.registrationNumber = registrationNumber;
     }
 
+    // New Getters and Setters
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getRegistrationNumber() { return registrationNumber; }
+    public void setRegistrationNumber(String registrationNumber) { this.registrationNumber = registrationNumber; }
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

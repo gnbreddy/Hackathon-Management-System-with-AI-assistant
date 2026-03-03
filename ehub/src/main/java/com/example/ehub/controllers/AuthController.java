@@ -34,12 +34,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username already taken.");
         }
 
-        User user = new User(
-                request.username(),
-                passwordEncoder.encode(request.password()),
-                Role.PARTICIPANT // Defaulting to participant for now
-        );
-        userRepository.save(user);
+User user = new User();
+user.setUsername(request.username());
+user.setPasswordHash(passwordEncoder.encode(request.password()));
+user.setRole(Role.PARTICIPANT);
+user.setFullName(request.fullName());
+user.setEmail(request.email());
+user.setRegistrationNumber(request.registrationNumber());
+userRepository.save(user);
 
         return ResponseEntity.ok("User registered successfully");
     }
@@ -58,5 +60,5 @@ public class AuthController {
 }
 
 // DTOs using Java 14+ Records for brevity
-record RegisterDto(String username, String password) {}
+record RegisterDto(String username, String password, String fullName, String email, String registrationNumber) {} {}
 record LoginDto(String username, String password) {}
