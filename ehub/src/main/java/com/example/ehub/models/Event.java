@@ -19,6 +19,13 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventPhase currentPhase;
 
+    @Column(nullable = false)
+    private Integer maxTeamSize = 4; // Defaulting to 4 participants
+
+    // Add these Getters and Setters at the bottom
+    public Integer getMaxTeamSize() { return maxTeamSize; }
+    public void setMaxTeamSize(Integer maxTeamSize) { this.maxTeamSize = maxTeamSize; }
+
     public Event() {}
 
     // Getters and Setters

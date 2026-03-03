@@ -60,5 +60,5 @@ userRepository.save(user);
 }
 
 // DTOs using Java 14+ Records for brevity
-record RegisterDto(String username, String password, String fullName, String email, String registrationNumber) {} {}
+record RegisterDto(String username, String password, String fullName, String email, String registrationNumber) {}
 record LoginDto(String username, String password) {}
