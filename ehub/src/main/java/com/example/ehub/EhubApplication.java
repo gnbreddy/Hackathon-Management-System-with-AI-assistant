@@ -1,18 +1,18 @@
 package com.example.ehub;
 
-import java.util.TimeZone;
-
+import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import jakarta.annotation.PostConstruct;
+import java.util.TimeZone;
 
 @SpringBootApplication
 @EnableAsync
 public class EhubApplication {
 
-    // This forces Java to use the modern timezone name before it connects to the database
     @PostConstruct
     public void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
@@ -20,5 +20,11 @@ public class EhubApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(EhubApplication.class, args);
+    }
+
+    // Add this bean so AiService can use it to call the Gemini API
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
     }
 }

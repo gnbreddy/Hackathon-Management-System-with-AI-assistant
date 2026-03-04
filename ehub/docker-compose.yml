@@ -7,6 +7,40 @@ services:
       - POSTGRES_USER=ehub_user
       - POSTGRES_PASSWORD=ehub_password
       - POSTGRES_DB=ehub_db
+      - TZ=Asia/Kolkata # <--- ADD THIS LINE
     ports:
       - "5433:5432"
+    volumes:
+      - ehub_postgres_data:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ehub_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ehub_network
+
+  ehub:
+    build: .
+    container_name: ehub-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ehub_db
+      - SPRING_DATASOURCE_USERNAME=ehub_user
+      - SPRING_DATASOURCE_PASSWORD=ehub_password
+      
+    ports:
+      - "8080:8080"
+    restart: always
+    networks:
+      - ehub_network
+
+volumes:
+  ehub_postgres_data:
+
+networks:
+  ehub_network:
+    driver: bridge
