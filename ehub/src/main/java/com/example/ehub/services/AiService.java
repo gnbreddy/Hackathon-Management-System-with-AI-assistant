@@ -1,20 +1,22 @@
 package com.example.ehub.services;
 
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import com.example.ehub.models.Submission;
 import com.example.ehub.models.SubmissionStatus;
 import com.example.ehub.repositories.SubmissionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import java.util.Map;
 
 @Service
 public class AiService {
 
-    @Value("${gemini.api.key}")
+    @Value("${spring.config.import}")
     private String geminiApiKey;
 
     private final SubmissionRepository submissionRepository;
