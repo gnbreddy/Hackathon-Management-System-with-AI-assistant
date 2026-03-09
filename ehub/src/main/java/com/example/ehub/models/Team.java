@@ -44,6 +44,11 @@ public class Team {
     @Column(name = "tag")
     private List<String> lookingForTags;
 
+    @Column(nullable = false)
+    private boolean disqualified = false;
+
+    private Integer qualificationRound; // Round in which team was disqualified or qualified
+
     public Team() {
     }
 
@@ -94,5 +99,21 @@ public class Team {
 
     public void setLookingForTags(List<String> lookingForTags) {
         this.lookingForTags = lookingForTags;
+    }
+
+    public boolean isDisqualified() {
+        return disqualified;
+    }
+
+    public void setDisqualified(boolean disqualified) {
+        this.disqualified = disqualified;
+    }
+
+    public Integer getQualificationRound() {
+        return qualificationRound;
+    }
+
+    public void setQualificationRound(Integer qualificationRound) {
+        this.qualificationRound = qualificationRound;
     }
 }

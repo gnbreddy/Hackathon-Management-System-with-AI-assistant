@@ -1,88 +1,70 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { KeyRound, User, ChevronRight } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const successMsg = location.state?.message;
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        setLoading(true);
+        setError('');
         try {
             const response = await api.post('/auth/login', { username, password });
             localStorage.setItem('token', response.data);
             navigate('/dashboard');
-        } catch (error) {
-            alert('Login failed. Check credentials.');
-            setIsLoading(false);
+        } catch (err) {
+            setError(err.response?.data || 'Login failed. Check your credentials.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen p-4 sm:p-0">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-300/30 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse delay-1000"></div>
-
-            <div className="w-full max-w-md animate-slide-up z-10">
-                <div className="text-center mb-10 animate-fade-in">
-                    <h1 className="text-4xl font-bold tracking-tight text-textMain mb-2">Welcome Back</h1>
-                    <p className="text-textMuted">Sign in to your EHub account to continue.</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div className="text-center mb-8">
+                    <div className="text-4xl mb-3">🎯</div>
+                    <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
+                    <p className="text-gray-500 mt-1 text-sm">Sign in to your EHub account</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="glass-card p-8 sm:p-10">
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-textMain/80 pl-1">Username</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-textMuted" />
-                                <input
-                                    type="text"
-                                    placeholder="Enter your username"
-                                    className="mac-input pl-12"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
+                {successMsg && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">✅ {successMsg}</div>
+                )}
+                {error && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>
+                )}
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-textMain/80 pl-1">Password</label>
-                            <div className="relative">
-                                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-textMuted" />
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    className="mac-input pl-12"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="mac-button w-full mt-4 group"
-                        >
-                            {isLoading ? 'Signing in...' : 'Sign In'}
-                            {!isLoading && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-                        </button>
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" placeholder="Your username"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                            value={username} onChange={e => setUsername(e.target.value)} required />
                     </div>
-
-                    <div className="mt-8 text-center text-sm text-textMuted">
-                        Don't have an account?{' '}
-                        <a href="/register" className="text-primary hover:text-primaryHover font-medium transition-colors">
-                            Create one now
-                        </a>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" placeholder="Your password"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                            value={password} onChange={e => setPassword(e.target.value)} required />
                     </div>
+                    <button type="submit" disabled={loading}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50">
+                        {loading ? 'Signing in...' : 'Sign In'}
+                    </button>
                 </form>
+
+                <p className="text-center text-sm text-gray-500 mt-6">
+                    Don't have an account?{' '}
+                    <Link to="/register" className="text-blue-600 hover:underline font-medium">Register here</Link>
+                </p>
             </div>
         </div>
     );

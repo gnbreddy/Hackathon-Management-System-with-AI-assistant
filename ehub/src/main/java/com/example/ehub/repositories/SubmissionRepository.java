@@ -9,4 +9,6 @@ import com.example.ehub.models.SubmissionStatus;
 
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByStatusOrderByAiScoreDesc(SubmissionStatus status);
+
+    List<Submission> findByTeamId(Long teamId);
 }

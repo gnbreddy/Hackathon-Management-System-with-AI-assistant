@@ -1,0 +1,11 @@
+# .gitignore
+ehub/target/
+ehub-ui/.env
+ehub-ui/.env.local
+ehub-ui/.env.production
+ehub-ui/node_modules/
+ehub-ui/dist/
+.vscode/
+.idea/
+*.iml
+*.class
