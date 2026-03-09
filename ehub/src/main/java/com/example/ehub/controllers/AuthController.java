@@ -34,14 +34,21 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username already taken.");
         }
 
-User user = new User();
-user.setUsername(request.username());
-user.setPasswordHash(passwordEncoder.encode(request.password()));
-user.setRole(Role.PARTICIPANT);
-user.setFullName(request.fullName());
-user.setEmail(request.email());
-user.setRegistrationNumber(request.registrationNumber());
-userRepository.save(user);
+        User user = new User();
+        user.setUsername(request.username());
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+
+        // Role assignment based on email domain
+        if (request.email() != null && request.email().toLowerCase().endsWith("@vitap.ac.in")) {
+            user.setRole(Role.ORGANIZER);
+        } else {
+            user.setRole(Role.PARTICIPANT);
+        }
+
+        user.setFullName(request.fullName());
+        user.setEmail(request.email());
+        user.setRegistrationNumber(request.registrationNumber());
+        userRepository.save(user);
 
         return ResponseEntity.ok("User registered successfully");
     }
@@ -51,7 +58,7 @@ userRepository.save(user);
         Optional<User> userOpt = userRepository.findByUsername(request.username());
 
         if (userOpt.isPresent() && passwordEncoder.matches(request.password(), userOpt.get().getPasswordHash())) {
-            String token = jwtService.generateToken(request.username());
+            String token = jwtService.generateToken(userOpt.get());
             return ResponseEntity.ok(token);
         }
 
@@ -60,5 +67,8 @@ userRepository.save(user);
 }
 
 // DTOs using Java 14+ Records for brevity
-record RegisterDto(String username, String password, String fullName, String email, String registrationNumber) {}
-record LoginDto(String username, String password) {}
+record RegisterDto(String username, String password, String fullName, String email, String registrationNumber) {
+}
+
+record LoginDto(String username, String password) {
+}

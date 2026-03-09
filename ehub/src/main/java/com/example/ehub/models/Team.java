@@ -23,7 +23,7 @@ public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String name;
 
@@ -31,12 +31,12 @@ public class Team {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
+    @ManyToOne
+    @JoinColumn(name = "leader_id", nullable = false)
+    private User leader;
+
     @ManyToMany
-    @JoinTable(
-        name = "team_members",
-        joinColumns = @JoinColumn(name = "team_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
+    @JoinTable(name = "team_members", joinColumns = @JoinColumn(name = "team_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> members;
 
     @ElementCollection
@@ -44,17 +44,55 @@ public class Team {
     @Column(name = "tag")
     private List<String> lookingForTags;
 
-    public Team() {}
+    public Team() {
+    }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Event getEvent() { return event; }
-    public void setEvent(Event event) { this.event = event; }
-    public Set<User> getMembers() { return members; }
-    public void setMembers(Set<User> members) { this.members = members; }
-    public List<String> getLookingForTags() { return lookingForTags; }
-    public void setLookingForTags(List<String> lookingForTags) { this.lookingForTags = lookingForTags; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public User getLeader() {
+        return leader;
+    }
+
+    public void setLeader(User leader) {
+        this.leader = leader;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public Set<User> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Set<User> members) {
+        this.members = members;
+    }
+
+    public List<String> getLookingForTags() {
+        return lookingForTags;
+    }
+
+    public void setLookingForTags(List<String> lookingForTags) {
+        this.lookingForTags = lookingForTags;
+    }
 }
