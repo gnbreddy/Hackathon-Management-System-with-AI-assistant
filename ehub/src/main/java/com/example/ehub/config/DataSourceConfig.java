@@ -21,7 +21,7 @@ import java.net.URI;
 @Configuration
 public class DataSourceConfig {
 
-    @Value("${DATABASE_URL:}")
+    @Value("${DATABASE_URL:postgresql://postgres:[EMAIL_ADDRESS]:5432/railway}")
     private String databaseUrl;
 
     @Bean
