@@ -31,6 +31,7 @@ export default function Dashboard() {
 
     // Forms
     const [newEvent, setNewEvent] = useState({ name: '', description: '', problemStatement: '', imageUrl: '', venue: '', eventDate: '', maxTeamSize: 4 });
+    const [imageFile, setImageFile] = useState(null);
     const [newTeam, setNewTeam] = useState({ name: '', eventId: '' });
     const [newSubmission, setNewSubmission] = useState({ teamId: '', githubUrl: '', projectTitle: '', problemStatement: '', projectDescription: '', reviewRound: 1 });
     const [memberReg, setMemberReg] = useState({ teamId: '', regNo: '' });
@@ -89,11 +90,22 @@ export default function Dashboard() {
     const handleCreateEvent = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/events', { ...newEvent, maxTeamSize: parseInt(newEvent.maxTeamSize) });
+            let uploadedUrl = newEvent.imageUrl;
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+                const res = await api.post('/events/upload-image', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                uploadedUrl = res.data.url;
+            }
+
+            await api.post('/events', { ...newEvent, imageUrl: uploadedUrl, maxTeamSize: parseInt(newEvent.maxTeamSize) });
             setNewEvent({ name: '', description: '', problemStatement: '', imageUrl: '', venue: '', eventDate: '', maxTeamSize: 4 });
+            setImageFile(null);
             fetchData();
             alert('Hackathon created!');
-        } catch (err) { alert(err.response?.data || 'Failed to create hackathon'); }
+        } catch (err) { alert(err.response?.data?.error || err.response?.data || 'Failed to create hackathon'); }
     };
 
     const handleAdvancePhase = async (eventId) => {
@@ -231,7 +243,16 @@ export default function Dashboard() {
                                 <input className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Venue" value={newEvent.venue} onChange={e => setNewEvent({ ...newEvent, venue: e.target.value })} />
                                 <input type="datetime-local" className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" value={newEvent.eventDate} onChange={e => setNewEvent({ ...newEvent, eventDate: e.target.value })} />
                                 <input type="number" className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Max Team Size" min="1" value={newEvent.maxTeamSize} onChange={e => setNewEvent({ ...newEvent, maxTeamSize: e.target.value })} required />
-                                <input className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2" placeholder="Banner Image URL" value={newEvent.imageUrl} onChange={e => setNewEvent({ ...newEvent, imageUrl: e.target.value })} />
+                                <div className="md:col-span-2 flex flex-col gap-2">
+                                    <input className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50" placeholder="Banner Image URL (Optional)" value={newEvent.imageUrl} onChange={e => setNewEvent({ ...newEvent, imageUrl: e.target.value })} disabled={!!imageFile} />
+                                    <div className="flex items-center gap-2 px-2">
+                                        <span className="text-sm font-semibold text-gray-500">OR Upload Image:</span>
+                                        <input type="file" accept="image/*" className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onChange={e => {
+                                            setImageFile(e.target.files[0]);
+                                            if (e.target.files[0]) setNewEvent({ ...newEvent, imageUrl: '' });
+                                        }} />
+                                    </div>
+                                </div>
                                 <textarea className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 resize-none h-20" placeholder="Description / Theme" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} />
                                 <textarea className="px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 resize-none h-24" placeholder="Problem Statement*" value={newEvent.problemStatement} onChange={e => setNewEvent({ ...newEvent, problemStatement: e.target.value })} required />
                                 <button type="submit" className="md:col-span-2 flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
@@ -256,7 +277,12 @@ export default function Dashboard() {
                                                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                             <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${phaseColors[ev.currentPhase] || 'bg-gray-100 text-gray-600'}`}>{ev.currentPhase}</span>
                                                             {ev.venue && <span className="text-xs text-gray-400">📍 {ev.venue}</span>}
-                                                            {ev.eventDate && <span className="text-xs text-gray-400">🗓 {new Date(ev.eventDate).toLocaleString('en-IN')}</span>}
+                                                            {ev.eventDate && (
+                                                                <>
+                                                                    <span className="text-xs text-gray-400">🗓 {new Date(ev.eventDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                                                    <span className="text-xs text-gray-400">⏰ {new Date(ev.eventDate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -482,7 +508,12 @@ export default function Dashboard() {
                                                     </div>
                                                     <div className="text-xs text-gray-400 space-y-0.5">
                                                         {ev.venue && <p>📍 {ev.venue}</p>}
-                                                        {ev.eventDate && <p>🗓 {new Date(ev.eventDate).toLocaleString('en-IN')}</p>}
+                                                        {ev.eventDate && (
+                                                            <div className="flex items-center gap-3">
+                                                                <p>🗓 {new Date(ev.eventDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                                                <p>⏰ {new Date(ev.eventDate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                            </div>
+                                                        )}
                                                         {alreadyInTeamForEvent && <p className="text-green-600 font-medium">✅ You have a team in this hackathon</p>}
                                                     </div>
                                                     {expandedEvent === ev.id && (

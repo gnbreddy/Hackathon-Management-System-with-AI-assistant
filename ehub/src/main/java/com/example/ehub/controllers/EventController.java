@@ -4,7 +4,12 @@ import com.example.ehub.models.*;
 import com.example.ehub.repositories.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -62,6 +67,38 @@ public class EventController {
         event.setMaxTeamSize(dto.maxTeamSize() != null ? dto.maxTeamSize() : 4);
         event.setCurrentPhase(EventPhase.REGISTRATION);
         return eventRepository.save(event);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Please select a file to upload."));
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+
+            String newFilename = UUID.randomUUID().toString() + extension;
+            Path uploadPath = Paths.get("uploads");
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(newFilename);
+            file.transferTo(filePath.toFile());
+
+            String fileUrl = "/uploads/" + newFilename;
+            return ResponseEntity.ok(Map.of("url", fileUrl));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", "Could not upload the file: " + e.getMessage()));
+        }
     }
 
     @PatchMapping("/{id}/phase")

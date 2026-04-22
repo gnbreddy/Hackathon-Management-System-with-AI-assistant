@@ -17,6 +17,7 @@ public class EmailService {
     }
 
     public void sendOtp(String toEmail, String otp) {
+        System.out.println("TESTING OTP FOR " + toEmail + ": " + otp);
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
