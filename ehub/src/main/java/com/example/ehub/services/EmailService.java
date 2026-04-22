@@ -9,6 +9,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username:noreply@ehub.com}")
+    private String fromEmail;
+
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
@@ -16,6 +19,7 @@ public class EmailService {
     public void sendOtp(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("EHub — Your OTP Verification Code");
             message.setText(

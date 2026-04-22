@@ -51,7 +51,22 @@ public class AuthController {
         if (userRepository.existsByUsername(request.username())) {
             return ResponseEntity.badRequest().body("Username already taken.");
         }
-        if (userRepository.existsByEmail(email)) {
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if (user.getStatus() == UserStatus.PENDING) {
+                // Allow re-registration for pending users to resend OTP
+                user.setUsername(request.username());
+                user.setPasswordHash(passwordEncoder.encode(request.password()));
+                user.setFullName(request.fullName());
+                user.setRegistrationNumber(request.registrationNumber());
+                userRepository.save(user);
+                
+                String otp = otpStore.generate(email);
+                emailService.sendOtp(email, otp);
+                
+                return ResponseEntity.ok("Resent OTP! Please verify within 60 minutes.");
+            }
             return ResponseEntity.badRequest().body("Email already registered.");
         }
 

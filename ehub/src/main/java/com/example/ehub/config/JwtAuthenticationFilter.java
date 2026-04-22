@@ -39,24 +39,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
+        try {
+            final String jwt = authHeader.substring(7);
+            final String username = jwtService.extractUsername(jwt);
 
-        // If we have a username and the user isn't already authenticated in this
-        // context
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtService.isTokenValid(jwt, username)) {
+            // If we have a username and the user isn't already authenticated in this
+            // context
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtService.isTokenValid(jwt, username)) {
 
-                // For MVP: Creating a simple Spring Security User representation
-                UserDetails userDetails = new User(username, "", new ArrayList<>());
+                    // For MVP: Creating a simple Spring Security User representation
+                    UserDetails userDetails = new User(username, "", new ArrayList<>());
 
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Set the user in the security context
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    // Set the user in the security context
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // Log the error and allow the request to proceed as unauthenticated. 
+            // In a real app, you might want to return 401 directly for protected endpoints.
+            System.err.println("JWT Parsing failed: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
     }

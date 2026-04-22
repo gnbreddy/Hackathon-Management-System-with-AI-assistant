@@ -17,10 +17,11 @@ import java.util.function.Function;
 public class JwtService {
 
     // Note: In production, load this from application.properties
-    private static final String SECRET_KEY = "YourSuperSecretKeyForEhubThatNeedsToBeVeryLongAndSecure123!";
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}")
+    private String secretKey;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public String generateToken(User user) {

@@ -19,6 +19,7 @@ public class EhubApplication {
     }
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
         SpringApplication.run(EhubApplication.class, args);
     }
 
