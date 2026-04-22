@@ -5,7 +5,8 @@ import api from '../api/axios';
 import {
     CalendarDays, Users, Github, BrainCircuit, Trophy, LogOut,
     RefreshCw, Plus, Link as LinkIcon, UserPlus, UserMinus,
-    Star, MessageSquare, ChevronDown, ChevronUp, X, Bot, Award
+    Star, MessageSquare, ChevronDown, ChevronUp, X, Bot, Award,
+    User as UserIcon
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -214,12 +215,21 @@ export default function Dashboard() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-6 lg:p-8">
             {/* Header */}
             <header className="max-w-7xl mx-auto flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">EHub</h1>
-                    <p className="text-gray-500 text-sm mt-1">
-                        Logged in as <span className="font-semibold text-blue-600">{currentUser.username}</span> ·{' '}
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${currentUser.role === 'ORGANIZER' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>{currentUser.role}</span>
-                    </p>
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => navigate('/profile')} 
+                        className="p-2 bg-white border border-gray-200 rounded-xl text-blue-600 hover:bg-blue-50 shadow-sm transition-all hover:scale-105 active:scale-95 group" 
+                        title="View Profile"
+                    >
+                        <UserIcon className="w-6 h-6" />
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">EHub</h1>
+                        <p className="text-gray-500 text-sm mt-1">
+                            Logged in as <span className="font-semibold text-blue-600">{currentUser.username}</span> ·{' '}
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${currentUser.role === 'ORGANIZER' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>{currentUser.role}</span>
+                        </p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-sm font-medium shadow-sm transition-colors">
