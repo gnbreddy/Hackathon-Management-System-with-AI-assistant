@@ -1,0 +1,9 @@
+#!/bin/sh
+DIRNAME="$(dirname "$0")"
+MAVEN_CMD="$DIRNAME/../.tools/apache-maven-3.9.9/bin/mvn"
+
+if [ -f "$MAVEN_CMD" ]; then
+    exec "$MAVEN_CMD" "$@"
+else
+    exec mvn "$@"
+fi
