@@ -20,7 +20,7 @@ WORKDIR /app
 RUN addgroup -S ehub && adduser -S ehub -G ehub
 USER ehub
 
-COPY --from=builder /app/target/ehub-backend-1.0.0.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 
 ENV PORT=8080
 EXPOSE 8080

@@ -2,6 +2,7 @@ package com.example.ehub.controllers;
 
 import com.example.ehub.dto.EventDtos.CreateEventRequest;
 import com.example.ehub.dto.EventDtos.EventResponseDto;
+import com.example.ehub.dto.EventDtos.UnlockEventRequest;
 import com.example.ehub.dto.EventDtos.UpdatePhaseRequest;
 import com.example.ehub.models.User;
 import com.example.ehub.services.EventService;
@@ -25,8 +26,8 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventResponseDto>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
+    public ResponseEntity<List<EventResponseDto>> getAllEvents(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(eventService.getAllEvents(user));
     }
 
     @GetMapping("/{id}")
@@ -41,6 +42,12 @@ public class EventController {
             @AuthenticationPrincipal User user) {
         EventResponseDto created = eventService.createEvent(req, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/unlock")
+    public ResponseEntity<EventResponseDto> unlockEventByCode(@Valid @RequestBody UnlockEventRequest req) {
+        EventResponseDto event = eventService.unlockEventByCode(req.eventCode());
+        return ResponseEntity.ok(event);
     }
 
     @PatchMapping("/{id}/phase")

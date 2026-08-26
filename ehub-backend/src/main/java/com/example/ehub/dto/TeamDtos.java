@@ -14,12 +14,18 @@ public class TeamDtos {
         @NotNull(message = "Event ID is required")
         Long eventId,
 
-        String skillsRequired
+        String skillsRequired,
+
+        Boolean isPublic
     ) {}
 
     public record JoinTeamRequest(
         @NotBlank(message = "Join code is required")
         String joinCode
+    ) {}
+
+    public record UpdateTeamVisibilityRequest(
+        boolean isPublic
     ) {}
 
     public record TeamMemberDto(
@@ -39,6 +45,7 @@ public class TeamDtos {
         Long leaderId,
         String leaderName,
         String skillsRequired,
+        boolean isPublic,
         List<TeamMemberDto> members,
         int currentSize,
         int maxSize,

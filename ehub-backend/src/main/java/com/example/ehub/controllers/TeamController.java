@@ -3,6 +3,7 @@ package com.example.ehub.controllers;
 import com.example.ehub.dto.TeamDtos.CreateTeamRequest;
 import com.example.ehub.dto.TeamDtos.JoinTeamRequest;
 import com.example.ehub.dto.TeamDtos.TeamResponseDto;
+import com.example.ehub.dto.TeamDtos.UpdateTeamVisibilityRequest;
 import com.example.ehub.models.User;
 import com.example.ehub.services.TeamService;
 import jakarta.validation.Valid;
@@ -38,6 +39,15 @@ public class TeamController {
             @AuthenticationPrincipal User user) {
         TeamResponseDto joined = teamService.joinTeam(req, user);
         return ResponseEntity.ok(joined);
+    }
+
+    @PatchMapping("/{id}/visibility")
+    public ResponseEntity<TeamResponseDto> updateTeamVisibility(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTeamVisibilityRequest req,
+            @AuthenticationPrincipal User user) {
+        TeamResponseDto updated = teamService.updateTeamVisibility(id, req.isPublic(), user);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{id}")

@@ -38,6 +38,9 @@ public class Team {
     @Column(name = "skills_required")
     private String skillsRequired; // comma-separated e.g. "React, Spring Boot, AI"
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -129,6 +132,14 @@ public class Team {
 
     public void setSkillsRequired(String skillsRequired) {
         this.skillsRequired = skillsRequired;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     public LocalDateTime getCreatedAt() {

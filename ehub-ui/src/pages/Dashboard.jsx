@@ -19,7 +19,9 @@ import {
   Layers,
   CheckCircle2,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  Globe
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -39,6 +41,7 @@ export default function Dashboard() {
   // Forms State
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamSkills, setNewTeamSkills] = useState('');
+  const [newTeamIsPublic, setNewTeamIsPublic] = useState(true);
   const [joinCodeInput, setJoinCodeInput] = useState('');
   
   // Submission Form State
@@ -134,15 +137,32 @@ export default function Dashboard() {
       const res = await api.post('/teams', {
         name: newTeamName,
         eventId: activeEvent.id,
-        skillsRequired: newTeamSkills
+        skillsRequired: newTeamSkills,
+        isPublic: newTeamIsPublic
       });
       setMyTeam(res.data);
       setNewTeamName('');
       setNewTeamSkills('');
+      setNewTeamIsPublic(true);
       setToast({ message: `Team '${res.data.name}' created! Share join code: ${res.data.joinCode}`, type: 'success' });
       fetchDashboardData();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to create team.';
+      setToast({ message: msg, type: 'error' });
+    }
+  };
+
+  const handleToggleTeamVisibility = async (teamId, targetPublic) => {
+    try {
+      const res = await api.patch(`/teams/${teamId}/visibility`, { isPublic: targetPublic });
+      setMyTeam(res.data);
+      setToast({
+        message: `Team is now ${targetPublic ? 'PUBLIC (open for matchmaking)' : 'PRIVATE (code-only squad)'}!`,
+        type: 'success'
+      });
+      fetchDashboardData();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to update visibility.';
       setToast({ message: msg, type: 'error' });
     }
   };
@@ -225,7 +245,7 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <Layers className="w-12 h-12 text-slate-500 mx-auto mb-3" />
         <h2 className="text-xl font-bold text-white">No Active Hackathon Selected</h2>
-        <p className="text-sm text-slate-400 mt-1">Please select an event from the top switcher.</p>
+        <p className="text-sm text-slate-400 mt-1">Please select an event from the top switcher or unlock with a code.</p>
       </div>
     );
   }
@@ -265,6 +285,7 @@ export default function Dashboard() {
                 isMyTeam={true}
                 currentUser={user}
                 onLeave={handleLeaveTeam}
+                onToggleVisibility={handleToggleTeamVisibility}
               />
             </div>
           ) : (
@@ -294,6 +315,46 @@ export default function Dashboard() {
                       className="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-semibold"
                       required
                     />
+                  </div>
+
+                  {/* Public vs Private Team Visibility Selector */}
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-300 mb-1.5">
+                      Team Access Modifier
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNewTeamIsPublic(true)}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          newTeamIsPublic
+                            ? 'bg-cyan-500/15 border-cyan-500/60 text-white shadow-glow-sm'
+                            : 'bg-surface-100/60 border-white/10 text-slate-400 hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold mb-0.5">
+                          <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Public Team</span>
+                        </div>
+                        <span className="text-[9px] text-slate-400 block leading-tight">Visible in skill matchmaking</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setNewTeamIsPublic(false)}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          !newTeamIsPublic
+                            ? 'bg-purple-500/15 border-purple-500/60 text-white shadow-glow-purple'
+                            : 'bg-surface-100/60 border-white/10 text-slate-400 hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold mb-0.5">
+                          <Lock className="w-3.5 h-3.5 text-purple-400" />
+                          <span>Private Squad</span>
+                        </div>
+                        <span className="text-[9px] text-slate-400 block leading-tight">Friends join via Team Code</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -353,7 +414,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Search className="w-4 h-4 text-cyan-400" />
-                  Find Teams Seeking Talent
+                  Find Public Teams Seeking Talent
                 </h3>
                 <span className="text-xs font-mono text-slate-400">
                   {matchmakingTeams.length} Open
@@ -384,7 +445,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="text-center py-6 border border-dashed border-white/10 rounded-xl">
-                  <p className="text-xs text-slate-400">No open teams matching your skill query.</p>
+                  <p className="text-xs text-slate-400">No public open teams matching your search.</p>
                 </div>
               )}
             </div>

@@ -26,8 +26,9 @@ services:
   - type: web
     name: ehub-ui
     runtime: static
-    buildCommand: cd ehub-ui && npm install && npm run build
-    staticPublishPath: ehub-ui/dist
+    rootDir: ehub-ui
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*

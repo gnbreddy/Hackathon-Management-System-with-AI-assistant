@@ -41,6 +41,19 @@ export function EventProvider({ children }) {
     }
   };
 
+  const unlockEventByCode = async (eventCode) => {
+    const res = await api.post('/events/unlock', { eventCode: eventCode.trim().toUpperCase() });
+    const unlocked = res.data;
+    setEvents(prev => {
+      if (!prev.some(e => e.id === unlocked.id)) {
+        return [unlocked, ...prev];
+      }
+      return prev;
+    });
+    setActiveEvent(unlocked);
+    return unlocked;
+  };
+
   return (
     <EventContext.Provider
       value={{
@@ -48,6 +61,7 @@ export function EventProvider({ children }) {
         activeEvent,
         setActiveEvent,
         selectEventById,
+        unlockEventByCode,
         refreshEvents: fetchEvents,
         loading
       }}

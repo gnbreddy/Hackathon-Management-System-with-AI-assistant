@@ -7,7 +7,9 @@ import {
   Tag,
   UserPlus,
   LogOut,
-  ShieldAlert
+  Lock,
+  Globe,
+  RefreshCw
 } from 'lucide-react';
 
 export default function TeamCard({
@@ -15,9 +17,11 @@ export default function TeamCard({
   isMyTeam = false,
   currentUser = null,
   onJoin = null,
-  onLeave = null
+  onLeave = null,
+  onToggleVisibility = null
 }) {
   const [copied, setCopied] = useState(false);
+  const [updatingVis, setUpdatingVis] = useState(false);
 
   if (!team) return null;
 
@@ -27,6 +31,17 @@ export default function TeamCard({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleToggle = async () => {
+    if (!onToggleVisibility) return;
+    try {
+      setUpdatingVis(true);
+      await onToggleVisibility(team.id, !team.isPublic);
+    } finally {
+      setUpdatingVis(false);
+    }
+  };
+
+  const isLeader = currentUser && team.leaderId === currentUser.id;
   const skillsList = team.skillsRequired
     ? team.skillsRequired.split(',').map(s => s.trim()).filter(Boolean)
     : [];
@@ -47,6 +62,14 @@ export default function TeamCard({
                 MY TEAM
               </span>
             )}
+            <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-md flex items-center gap-1 border ${
+              team.isPublic
+                ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+                : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+            }`}>
+              {team.isPublic ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
+              {team.isPublic ? 'Public' : 'Private'}
+            </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             Leader: <span className="text-slate-200 font-medium">{team.leaderName}</span>
@@ -78,6 +101,40 @@ export default function TeamCard({
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
         </button>
       </div>
+
+      {/* Leader Visibility Control Toggle */}
+      {isMyTeam && isLeader && onToggleVisibility && (
+        <div className="mb-4 p-2.5 rounded-xl bg-surface-100/80 border border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {team.isPublic ? (
+              <Globe className="w-4 h-4 text-cyan-400" />
+            ) : (
+              <Lock className="w-4 h-4 text-amber-400" />
+            )}
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-white">
+                {team.isPublic ? 'Public Matchmaking' : 'Private (Code-Only)'}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                {team.isPublic ? 'Visible to solo participants' : 'Hidden from skill explorer'}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleToggle}
+            disabled={updatingVis}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+              team.isPublic
+                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                : 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+            }`}
+          >
+            {updatingVis && <RefreshCw className="w-3 h-3 animate-spin" />}
+            <span>{team.isPublic ? 'Make Private' : 'Make Public'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Members List */}
       <div className="mb-4">

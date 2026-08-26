@@ -21,6 +21,8 @@ public class EventDtos {
         @Min(value = 1, message = "Maximum team size must be at least 1")
         int maxTeamSize,
 
+        Boolean isPublic,
+
         LocalDateTime registrationDeadline,
         LocalDateTime codingDeadline,
         LocalDateTime judgingDeadline
@@ -31,6 +33,11 @@ public class EventDtos {
         EventPhase targetPhase
     ) {}
 
+    public record UnlockEventRequest(
+        @NotBlank(message = "Event access code is required")
+        String eventCode
+    ) {}
+
     public record EventResponseDto(
         Long id,
         String title,
@@ -38,6 +45,8 @@ public class EventDtos {
         String bannerUrl,
         int minTeamSize,
         int maxTeamSize,
+        boolean isPublic,
+        String eventCode,
         EventPhase currentPhase,
         LocalDateTime registrationDeadline,
         LocalDateTime codingDeadline,

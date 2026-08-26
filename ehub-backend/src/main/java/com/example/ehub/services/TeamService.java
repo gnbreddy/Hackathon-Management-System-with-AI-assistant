@@ -69,6 +69,7 @@ public class TeamService {
         team.setEvent(event);
         team.setLeader(user);
         team.setSkillsRequired(req.skillsRequired() != null ? req.skillsRequired().trim() : "");
+        team.setPublic(req.isPublic() == null || req.isPublic());
         team.addMember(user);
 
         Team saved = teamRepository.save(team);
@@ -130,6 +131,8 @@ public class TeamService {
         String query = skillQuery != null ? skillQuery.trim().toLowerCase() : "";
 
         return teams.stream()
+                // Only return PUBLIC teams for matchmaking
+                .filter(Team::isPublic)
                 .filter(t -> {
                     boolean isOpen = t.getMembers().size() < t.getEvent().getMaxTeamSize();
                     if (Boolean.TRUE.equals(onlyOpenSlots) && !isOpen) {
@@ -144,6 +147,20 @@ public class TeamService {
                 })
                 .map(this::mapToDto)
                 .toList();
+    }
+
+    @Transactional
+    public TeamResponseDto updateTeamVisibility(Long teamId, boolean isPublic, User user) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with ID: " + teamId));
+
+        if (!team.getLeader().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Only the team leader can change team visibility settings.");
+        }
+
+        team.setPublic(isPublic);
+        Team updated = teamRepository.save(team);
+        return mapToDto(updated);
     }
 
     @Transactional
@@ -197,6 +214,7 @@ public class TeamService {
                 team.getLeader().getId(),
                 team.getLeader().getFullName(),
                 team.getSkillsRequired(),
+                team.isPublic(),
                 memberDtos,
                 currentSize,
                 maxSize,

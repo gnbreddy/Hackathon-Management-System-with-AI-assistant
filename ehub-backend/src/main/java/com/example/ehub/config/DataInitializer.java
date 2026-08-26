@@ -111,13 +111,15 @@ public class DataInitializer implements CommandLineRunner {
         fiona.setVerified(true);
         userRepository.save(fiona);
 
-        // 3. Create Flagship Hackathon Event
+        // 3. Create Flagship Hackathon Event (Public)
         Event hackathon = new Event();
         hackathon.setTitle("EHub Smart AI Hackathon 2026");
         hackathon.setDescription("Build next-generation autonomous AI agents, developer productivity tools, and full-stack cloud applications.");
         hackathon.setBannerUrl("https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80");
         hackathon.setMinTeamSize(1);
         hackathon.setMaxTeamSize(4);
+        hackathon.setPublic(true);
+        hackathon.setEventCode("HACK-AI2026");
         hackathon.setCurrentPhase(EventPhase.CODING);
         hackathon.setRegistrationDeadline(LocalDateTime.now().plusDays(2));
         hackathon.setCodingDeadline(LocalDateTime.now().plusDays(5));
@@ -125,13 +127,15 @@ public class DataInitializer implements CommandLineRunner {
         hackathon.setCreatedBy(organizer);
         eventRepository.save(hackathon);
 
-        // 4. Create Second Hackathon Event (Registration Phase)
+        // 4. Create Second Hackathon Event (Public - Registration Phase)
         Event web3Hack = new Event();
         web3Hack.setTitle("FinTech & Web3 Innovation Cup");
         web3Hack.setDescription("Create decentralized finance workflows, smart contract security checkers, and real-time payment rails.");
         web3Hack.setBannerUrl("https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80");
         web3Hack.setMinTeamSize(2);
         web3Hack.setMaxTeamSize(4);
+        web3Hack.setPublic(true);
+        web3Hack.setEventCode("HACK-WEB399");
         web3Hack.setCurrentPhase(EventPhase.REGISTRATION);
         web3Hack.setRegistrationDeadline(LocalDateTime.now().plusDays(10));
         web3Hack.setCodingDeadline(LocalDateTime.now().plusDays(15));
@@ -139,13 +143,30 @@ public class DataInitializer implements CommandLineRunner {
         web3Hack.setCreatedBy(organizer);
         eventRepository.save(web3Hack);
 
-        // 5. Create Sample Teams for Hackathon 1
+        // 5. Create Private Club Hackathon Event (Invite-Only via Access Code)
+        Event privateClubHack = new Event();
+        privateClubHack.setTitle("ACM & CSI Internal Club Sprint");
+        privateClubHack.setDescription("Exclusive closed-door algorithm sprint and agent building for authorized ACM/CSI university chapter members.");
+        privateClubHack.setBannerUrl("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80");
+        privateClubHack.setMinTeamSize(1);
+        privateClubHack.setMaxTeamSize(3);
+        privateClubHack.setPublic(false); // PRIVATE!
+        privateClubHack.setEventCode("CLUB-ACM26");
+        privateClubHack.setCurrentPhase(EventPhase.REGISTRATION);
+        privateClubHack.setRegistrationDeadline(LocalDateTime.now().plusDays(12));
+        privateClubHack.setCodingDeadline(LocalDateTime.now().plusDays(16));
+        privateClubHack.setJudgingDeadline(LocalDateTime.now().plusDays(19));
+        privateClubHack.setCreatedBy(organizer);
+        eventRepository.save(privateClubHack);
+
+        // 6. Create Sample Teams for Hackathon 1
         Team teamAlpha = new Team();
         teamAlpha.setName("NeuralNinjas");
         teamAlpha.setJoinCode("E-NN900");
         teamAlpha.setEvent(hackathon);
         teamAlpha.setLeader(alice);
         teamAlpha.setSkillsRequired("React, Spring Boot, PyTorch");
+        teamAlpha.setPublic(true); // Public Team (Looking for teammates)
         teamAlpha.addMember(alice);
         teamAlpha.addMember(bob);
         teamRepository.save(teamAlpha);
@@ -156,6 +177,7 @@ public class DataInitializer implements CommandLineRunner {
         teamBeta.setEvent(hackathon);
         teamBeta.setLeader(charlie);
         teamBeta.setSkillsRequired("Next.js, Python, OpenCV");
+        teamBeta.setPublic(false); // Private Squad (Invite-Only via Join Code)
         teamBeta.addMember(charlie);
         teamBeta.addMember(diana);
         teamRepository.save(teamBeta);

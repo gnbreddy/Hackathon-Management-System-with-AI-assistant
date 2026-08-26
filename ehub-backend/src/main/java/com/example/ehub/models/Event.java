@@ -39,6 +39,12 @@ public class Event {
     @Column(name = "judging_deadline")
     private LocalDateTime judgingDeadline;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = true;
+
+    @Column(name = "event_code", nullable = false, unique = true)
+    private String eventCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
@@ -152,6 +158,22 @@ public class Event {
 
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public String getEventCode() {
+        return eventCode;
+    }
+
+    public void setEventCode(String eventCode) {
+        this.eventCode = eventCode;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -19,7 +19,11 @@ import {
   BrainCircuit,
   Eye,
   X,
-  AlertTriangle
+  Lock,
+  Globe,
+  Copy,
+  KeyRound,
+  Check
 } from 'lucide-react';
 
 const phases = [
@@ -37,6 +41,7 @@ export default function OrganizerPanel() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -49,6 +54,7 @@ export default function OrganizerPanel() {
   const [newEventBanner, setNewEventBanner] = useState('');
   const [newEventMinTeam, setNewEventMinTeam] = useState(1);
   const [newEventMaxTeam, setNewEventMaxTeam] = useState(4);
+  const [newEventIsPublic, setNewEventIsPublic] = useState(true);
   const [creating, setCreating] = useState(false);
 
   const fetchOrganizerData = useCallback(async () => {
@@ -75,6 +81,15 @@ export default function OrganizerPanel() {
     fetchOrganizerData();
   }, [fetchOrganizerData]);
 
+  const handleCopyEventCode = () => {
+    if (activeEvent?.eventCode) {
+      navigator.clipboard.writeText(activeEvent.eventCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+      setToast({ message: `Copied event code: ${activeEvent.eventCode}`, type: 'info' });
+    }
+  };
+
   const handleAdvancePhase = async (targetPhase) => {
     if (!window.confirm(`Are you sure you want to transition event lifecycle to: ${targetPhase}?`)) {
       return;
@@ -97,7 +112,6 @@ export default function OrganizerPanel() {
       const res = await api.post(`/submissions/bulk-evaluate/${activeEvent.id}`);
       setToast({ message: res.data.message || 'Queued bulk AI evaluation!', type: 'success' });
       
-      // Reload after brief delay
       setTimeout(() => {
         fetchOrganizerData();
       }, 2000);
@@ -132,7 +146,8 @@ export default function OrganizerPanel() {
         description: newEventDesc,
         bannerUrl: newEventBanner || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
         minTeamSize: Number(newEventMinTeam),
-        maxTeamSize: Number(newEventMaxTeam)
+        maxTeamSize: Number(newEventMaxTeam),
+        isPublic: newEventIsPublic
       });
 
       refreshEvents();
@@ -140,7 +155,11 @@ export default function OrganizerPanel() {
       setShowCreateModal(false);
       setNewEventTitle('');
       setNewEventDesc('');
-      setToast({ message: `Event '${res.data.title}' created successfully!`, type: 'success' });
+      setNewEventIsPublic(true);
+      setToast({
+        message: `Event '${res.data.title}' created! Code: ${res.data.eventCode}`,
+        type: 'success'
+      });
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to create event.';
       setToast({ message: msg, type: 'error' });
@@ -190,6 +209,47 @@ export default function OrganizerPanel() {
 
       {activeEvent && (
         <>
+          {/* Active Event Banner with Access Code */}
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-surface-100/40">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl border ${
+                activeEvent.isPublic
+                  ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+              }`}>
+                {activeEvent.isPublic ? <Globe className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-white text-base">{activeEvent.title}</h3>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold border ${
+                    activeEvent.isPublic
+                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                      : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  }`}>
+                    {activeEvent.isPublic ? 'PUBLIC HACKATHON' : 'PRIVATE / CLUB ONLY'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Team Size: {activeEvent.minTeamSize}–{activeEvent.maxTeamSize} members</p>
+              </div>
+            </div>
+
+            {/* Event Access Code Box */}
+            <div className="flex items-center gap-2 bg-[#090D16]/90 border border-white/10 px-3.5 py-2 rounded-xl">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400">Event Access Code</span>
+                <span className="text-xs font-mono font-bold text-purple-300">{activeEvent.eventCode || 'HACK-AI2026'}</span>
+              </div>
+              <button
+                onClick={handleCopyEventCode}
+                title="Copy Hackathon Code"
+                className="p-1.5 rounded-lg bg-surface-100 hover:bg-surface-hover text-slate-300 hover:text-white transition-all ml-2"
+              >
+                {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
           {/* State Machine Controller Card */}
           <div className="glass-card rounded-2xl p-6 border border-purple-500/30 bg-purple-950/10 mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -384,8 +444,17 @@ export default function OrganizerPanel() {
               {teams.map((t) => (
                 <div key={t.id} className="p-4 rounded-xl bg-surface-100/60 border border-white/10">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-white text-sm">{t.name}</h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-white text-sm">{t.name}</h3>
+                      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                        t.isPublic
+                          ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+                          : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                      }`}>
+                        {t.isPublic ? 'Public' : 'Private'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30">
                       {t.joinCode}
                     </span>
                   </div>
@@ -461,29 +530,56 @@ export default function OrganizerPanel() {
                 />
               </div>
 
+              {/* Public vs Private Access Selector */}
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-300 mb-1">
-                  Description & Prompt
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-300 mb-1.5">
+                  Access Modifier (Visibility)
                 </label>
-                <textarea
-                  rows={3}
-                  value={newEventDesc}
-                  onChange={(e) => setNewEventDesc(e.target.value)}
-                  placeholder="Describe theme, guidelines, and tracks..."
-                  className="w-full glass-input rounded-xl px-3.5 py-2 text-xs leading-relaxed"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewEventIsPublic(true)}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      newEventIsPublic
+                        ? 'bg-cyan-500/15 border-cyan-500/60 text-white shadow-glow-sm'
+                        : 'bg-surface-100/60 border-white/10 text-slate-400 hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold mb-0.5">
+                      <Globe className="w-4 h-4 text-cyan-400" />
+                      <span>Public Event</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block leading-tight">Open for all students to discover</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewEventIsPublic(false)}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      !newEventIsPublic
+                        ? 'bg-purple-500/15 border-purple-500/60 text-white shadow-glow-purple'
+                        : 'bg-surface-100/60 border-white/10 text-slate-400 hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold mb-0.5">
+                      <Lock className="w-4 h-4 text-purple-400" />
+                      <span>Private / Club</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block leading-tight">Requires unique access code to enter</span>
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-300 mb-1">
-                  Banner Image URL (Optional)
+                  Description & Guidelines
                 </label>
-                <input
-                  type="url"
-                  value={newEventBanner}
-                  onChange={(e) => setNewEventBanner(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-mono"
+                <textarea
+                  rows={2}
+                  value={newEventDesc}
+                  onChange={(e) => setNewEventDesc(e.target.value)}
+                  placeholder="Describe theme, guidelines, and tracks..."
+                  className="w-full glass-input rounded-xl px-3.5 py-2 text-xs leading-relaxed"
                 />
               </div>
 

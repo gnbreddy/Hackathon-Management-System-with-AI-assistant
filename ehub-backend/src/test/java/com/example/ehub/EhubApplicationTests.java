@@ -84,11 +84,14 @@ class EhubApplicationTests {
                 null,
                 1,
                 4,
+                true,
                 null, null, null
         );
 
         EventResponseDto created = eventService.createEvent(req, organizer);
         assertEquals(EventPhase.REGISTRATION, created.currentPhase());
+        assertTrue(created.isPublic());
+        assertNotNull(created.eventCode());
 
         // Valid transition: REGISTRATION -> CODING
         EventResponseDto toCoding = eventService.advancePhase(created.id(), new UpdatePhaseRequest(EventPhase.CODING));
@@ -106,5 +109,26 @@ class EhubApplicationTests {
         assertThrows(PhaseConstraintException.class, () -> {
             eventService.advancePhase(created.id(), new UpdatePhaseRequest(EventPhase.REGISTRATION));
         });
+    }
+
+    @Test
+    @DisplayName("Test Private Event Unlocking and Access Control")
+    void testPrivateEventUnlock() {
+        CreateEventRequest req = new CreateEventRequest(
+                "Private Club Hack",
+                "Members only",
+                null,
+                1,
+                3,
+                false, // Private!
+                null, null, null
+        );
+
+        EventResponseDto created = eventService.createEvent(req, organizer);
+        assertFalse(created.isPublic());
+
+        // Unlock by eventCode
+        EventResponseDto unlocked = eventService.unlockEventByCode(created.eventCode());
+        assertEquals(created.id(), unlocked.id());
     }
 }
