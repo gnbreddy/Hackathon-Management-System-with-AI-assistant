@@ -2,14 +2,15 @@
 FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Install Maven
+RUN apk add --no-cache maven
+
+# Copy POM and sources
 COPY pom.xml .
-COPY .mvn .mvn
-COPY src src
+COPY src ./src
 
 # Build executable jar
-RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Stage 2: Lightweight Runtime
 FROM eclipse-temurin:21-jre-alpine
