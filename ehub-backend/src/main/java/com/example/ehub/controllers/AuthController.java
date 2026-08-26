@@ -78,8 +78,7 @@ public class AuthController {
                 savedUser.getRegistrationNumber(),
                 savedUser.getRole(),
                 true,
-                "Registration initiated! A 6-digit OTP has been sent to " + email,
-                otpCode
+                "Registration initiated! A 6-digit OTP has been sent to " + email
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(res);

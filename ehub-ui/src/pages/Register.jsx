@@ -14,8 +14,7 @@ import {
   ArrowRight,
   KeyRound,
   CheckCircle2,
-  RefreshCw,
-  Zap
+  RefreshCw
 } from 'lucide-react';
 
 export default function Register() {
@@ -28,7 +27,6 @@ export default function Register() {
   // OTP Modal State
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  const [previewOtp, setPreviewOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [toast, setToast] = useState(null);
@@ -53,14 +51,10 @@ export default function Register() {
         role
       });
 
-      // Save initial token and prompt OTP verification modal
+      // Save token and prompt OTP verification modal
       login(res.data);
-      if (res.data.otpPreview) {
-        setPreviewOtp(res.data.otpPreview);
-        setOtpCode(res.data.otpPreview);
-      }
       setShowOtpModal(true);
-      setToast({ message: 'Registration initiated! Enter the 6-digit OTP sent to your email.', type: 'info' });
+      setToast({ message: 'Registration initiated! Please check your email for the 6-digit OTP.', type: 'info' });
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Registration failed. Please check inputs.';
       setToast({ message: msg, type: 'error' });
@@ -72,13 +66,16 @@ export default function Register() {
   const handleVerifyOtp = async (e) => {
     e?.preventDefault();
     if (!otpCode || otpCode.length !== 6) {
-      setToast({ message: 'Please enter a valid 6-digit OTP.', type: 'error' });
+      setToast({ message: 'Please enter the 6-digit OTP sent to your email.', type: 'error' });
       return;
     }
 
     try {
       setLoading(true);
-      const res = await api.post('/auth/verify-otp', { email: email.trim().toLowerCase(), otpCode: otpCode.trim() });
+      const res = await api.post('/auth/verify-otp', {
+        email: email.trim().toLowerCase(),
+        otpCode: otpCode.trim()
+      });
       login(res.data);
       setToast({ message: 'Account verified successfully!', type: 'success' });
       
@@ -101,9 +98,10 @@ export default function Register() {
     try {
       setResending(true);
       const res = await api.post('/auth/resend-otp', { email: email.trim().toLowerCase() });
-      setToast({ message: res.data?.message || 'A new 6-digit OTP has been sent.', type: 'info' });
+      setToast({ message: res.data?.message || 'A new 6-digit OTP has been sent to your email.', type: 'info' });
     } catch (err) {
-      setToast({ message: 'Failed to resend OTP code.', type: 'error' });
+      const msg = err.response?.data?.message || 'Failed to resend OTP code.';
+      setToast({ message: msg, type: 'error' });
     } finally {
       setResending(false);
     }
@@ -289,18 +287,10 @@ export default function Register() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center mx-auto mb-3">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white">Enter 6-Digit OTP</h3>
+              <h3 className="text-xl font-bold text-white">Check Your Email</h3>
               <p className="text-xs text-slate-300 mt-1">
-                Verification code dispatched for <span className="font-mono text-cyan-300">{email}</span>
+                We sent a 6-digit verification code to <span className="font-mono text-cyan-300">{email}</span>
               </p>
-              
-              {/* Quick Auto-fill badge if preview is available */}
-              {previewOtp && (
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono">
-                  <Zap className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>OTP Code: <strong className="text-white font-bold">{previewOtp}</strong></span>
-                </div>
-              )}
             </div>
 
             <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -326,7 +316,7 @@ export default function Register() {
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Verify & Continue</span>
+                    <span>Verify & Activate Account</span>
                   </>
                 )}
               </button>

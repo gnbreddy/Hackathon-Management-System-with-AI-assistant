@@ -43,15 +43,10 @@ public class AuthDtos {
         String registrationNumber,
         Role role,
         boolean requiresOtpVerification,
-        String message,
-        String otpPreview
+        String message
     ) {
-        public AuthResponse(String token, String tokenType, Long userId, String fullName, String email, String registrationNumber, Role role, boolean requiresOtpVerification, String message) {
-            this(token, tokenType, userId, fullName, email, registrationNumber, role, requiresOtpVerification, message, null);
-        }
-
         public AuthResponse(String token, Long userId, String fullName, String email, String registrationNumber, Role role) {
-            this(token, "Bearer", userId, fullName, email, registrationNumber, role, false, "Authentication successful", null);
+            this(token, "Bearer", userId, fullName, email, registrationNumber, role, false, "Authentication successful");
         }
     }
 
