@@ -14,7 +14,8 @@ import {
   ArrowRight,
   KeyRound,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Zap
 } from 'lucide-react';
 
 export default function Register() {
@@ -27,6 +28,7 @@ export default function Register() {
   // OTP Modal State
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+  const [previewOtp, setPreviewOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [toast, setToast] = useState(null);
@@ -44,19 +46,23 @@ export default function Register() {
     try {
       setLoading(true);
       const res = await api.post('/auth/register', {
-        fullName,
-        email,
-        registrationNumber,
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        registrationNumber: registrationNumber.trim().toUpperCase(),
         password,
         role
       });
 
       // Save initial token and prompt OTP verification modal
       login(res.data);
+      if (res.data.otpPreview) {
+        setPreviewOtp(res.data.otpPreview);
+        setOtpCode(res.data.otpPreview);
+      }
       setShowOtpModal(true);
       setToast({ message: 'Registration initiated! Enter the 6-digit OTP sent to your email.', type: 'info' });
     } catch (err) {
-      const msg = err.response?.data?.message || 'Registration failed. Please check inputs.';
+      const msg = err.response?.data?.message || err.message || 'Registration failed. Please check inputs.';
       setToast({ message: msg, type: 'error' });
     } finally {
       setLoading(false);
@@ -72,7 +78,7 @@ export default function Register() {
 
     try {
       setLoading(true);
-      const res = await api.post('/auth/verify-otp', { email, otpCode });
+      const res = await api.post('/auth/verify-otp', { email: email.trim().toLowerCase(), otpCode: otpCode.trim() });
       login(res.data);
       setToast({ message: 'Account verified successfully!', type: 'success' });
       
@@ -94,8 +100,8 @@ export default function Register() {
   const handleResendOtp = async () => {
     try {
       setResending(true);
-      await api.post('/auth/resend-otp', { email });
-      setToast({ message: 'A new 6-digit OTP has been sent.', type: 'info' });
+      const res = await api.post('/auth/resend-otp', { email: email.trim().toLowerCase() });
+      setToast({ message: res.data?.message || 'A new 6-digit OTP has been sent.', type: 'info' });
     } catch (err) {
       setToast({ message: 'Failed to resend OTP code.', type: 'error' });
     } finally {
@@ -285,8 +291,16 @@ export default function Register() {
               </div>
               <h3 className="text-xl font-bold text-white">Enter 6-Digit OTP</h3>
               <p className="text-xs text-slate-300 mt-1">
-                We sent a one-time verification code to <span className="font-mono text-cyan-300">{email}</span>
+                Verification code dispatched for <span className="font-mono text-cyan-300">{email}</span>
               </p>
+              
+              {/* Quick Auto-fill badge if preview is available */}
+              {previewOtp && (
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono">
+                  <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>OTP Code: <strong className="text-white font-bold">{previewOtp}</strong></span>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleVerifyOtp} className="space-y-4">
