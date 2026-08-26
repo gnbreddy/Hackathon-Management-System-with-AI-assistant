@@ -41,6 +41,12 @@ export function EventProvider({ children }) {
     }
   };
 
+  const updateEventInList = (updatedEvent) => {
+    if (!updatedEvent) return;
+    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    setActiveEvent(prev => (prev?.id === updatedEvent.id ? updatedEvent : prev));
+  };
+
   const unlockEventByCode = async (eventCode) => {
     const res = await api.post('/events/unlock', { eventCode: eventCode.trim().toUpperCase() });
     const unlocked = res.data;
@@ -48,7 +54,7 @@ export function EventProvider({ children }) {
       if (!prev.some(e => e.id === unlocked.id)) {
         return [unlocked, ...prev];
       }
-      return prev;
+      return prev.map(e => e.id === unlocked.id ? unlocked : e);
     });
     setActiveEvent(unlocked);
     return unlocked;
@@ -61,6 +67,7 @@ export function EventProvider({ children }) {
         activeEvent,
         setActiveEvent,
         selectEventById,
+        updateEventInList,
         unlockEventByCode,
         refreshEvents: fetchEvents,
         loading

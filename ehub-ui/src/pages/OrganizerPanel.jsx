@@ -35,7 +35,7 @@ const phases = [
 
 export default function OrganizerPanel() {
   const { user } = useAuth();
-  const { events, activeEvent, setActiveEvent, refreshEvents } = useEvent();
+  const { events, activeEvent, setActiveEvent, updateEventInList, refreshEvents } = useEvent();
 
   const [submissions, setSubmissions] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -91,15 +91,11 @@ export default function OrganizerPanel() {
   };
 
   const handleAdvancePhase = async (targetPhase) => {
-    if (!window.confirm(`Are you sure you want to transition event lifecycle to: ${targetPhase}?`)) {
-      return;
-    }
-
     try {
       const res = await api.patch(`/events/${activeEvent.id}/phase`, { targetPhase });
-      setActiveEvent(res.data);
+      updateEventInList(res.data);
       refreshEvents();
-      setToast({ message: `Lifecycle advanced to ${targetPhase}!`, type: 'success' });
+      setToast({ message: `🚀 Lifecycle successfully advanced to ${targetPhase}!`, type: 'success' });
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to update phase.';
       setToast({ message: msg, type: 'error' });
@@ -150,8 +146,8 @@ export default function OrganizerPanel() {
         isPublic: newEventIsPublic
       });
 
+      updateEventInList(res.data);
       refreshEvents();
-      setActiveEvent(res.data);
       setShowCreateModal(false);
       setNewEventTitle('');
       setNewEventDesc('');

@@ -24,15 +24,18 @@ public class EventService {
     private final EventRepository eventRepository;
     private final TeamRepository teamRepository;
     private final SubmissionRepository submissionRepository;
+    private final com.example.ehub.repositories.UserRepository userRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public EventService(
             EventRepository eventRepository,
             TeamRepository teamRepository,
-            SubmissionRepository submissionRepository) {
+            SubmissionRepository submissionRepository,
+            com.example.ehub.repositories.UserRepository userRepository) {
         this.eventRepository = eventRepository;
         this.teamRepository = teamRepository;
         this.submissionRepository = submissionRepository;
+        this.userRepository = userRepository;
     }
 
     private String generateEventCode() {
@@ -88,6 +91,11 @@ public class EventService {
             eventCode = generateEventCode();
         }
 
+        User managedOrganizer = null;
+        if (organizer != null && organizer.getId() != null) {
+            managedOrganizer = userRepository.findById(organizer.getId()).orElse(organizer);
+        }
+
         Event event = new Event();
         event.setTitle(req.title().trim());
         event.setDescription(req.description() != null ? req.description().trim() : "");
@@ -100,7 +108,7 @@ public class EventService {
         event.setRegistrationDeadline(req.registrationDeadline());
         event.setCodingDeadline(req.codingDeadline());
         event.setJudgingDeadline(req.judgingDeadline());
-        event.setCreatedBy(organizer);
+        event.setCreatedBy(managedOrganizer);
 
         Event saved = eventRepository.save(event);
         return mapToDto(saved);
