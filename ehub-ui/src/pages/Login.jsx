@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Toast from '../components/Toast';
@@ -10,7 +10,11 @@ import {
   ArrowRight,
   ShieldCheck,
   Code2,
-  Cpu
+  KeyRound,
+  CheckCircle2,
+  RefreshCw,
+  X,
+  AlertCircle
 } from 'lucide-react';
 
 export default function Login() {
@@ -19,9 +23,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Forgot Password / Reset Account Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetStep, setResetStep] = useState(1); // 1: Email, 2: OTP
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogin = async (e) => {
     e?.preventDefault();
@@ -32,7 +43,10 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', {
+        email: email.trim().toLowerCase(),
+        password
+      });
       login(res.data);
       setToast({ message: 'Login successful! Redirecting...', type: 'success' });
       
@@ -62,6 +76,81 @@ export default function Login() {
       setEmail('alice@vitapstudent.ac.in');
       setPassword('Password123!');
     }
+  };
+
+  const handleSendResetOtp = async (e) => {
+    e?.preventDefault();
+    if (!resetEmail) {
+      setToast({ message: 'Please enter your registered email address.', type: 'error' });
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      const res = await api.post('/auth/forgot-password', {
+        email: resetEmail.trim().toLowerCase()
+      });
+      setResetStep(2);
+      setToast({ message: res.data?.message || '6-digit OTP sent to your email!', type: 'info' });
+    } catch (err) {
+      const msg = err.response?.data?.message || 'No account found with this email.';
+      setToast({ message: msg, type: 'error' });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleVerifyResetOtp = async (e) => {
+    e?.preventDefault();
+    if (!resetOtp || resetOtp.length !== 6) {
+      setToast({ message: 'Please enter the 6-digit OTP code.', type: 'error' });
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      const res = await api.post('/auth/reset-account-verify', {
+        email: resetEmail.trim().toLowerCase(),
+        otpCode: resetOtp.trim()
+      });
+
+      setShowForgotModal(false);
+      setToast({
+        message: res.data?.message || 'Account reset verified! You can now create your fresh password.',
+        type: 'success'
+      });
+
+      // Redirect to register page after short delay
+      setTimeout(() => {
+        navigate('/register');
+      }, 1000);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Invalid or expired OTP code. Credentials preserved.';
+      setToast({ message: msg, type: 'error' });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResendResetOtp = async () => {
+    try {
+      setResending(true);
+      const res = await api.post('/auth/forgot-password', {
+        email: resetEmail.trim().toLowerCase()
+      });
+      setToast({ message: res.data?.message || 'A new 6-digit OTP has been sent.', type: 'info' });
+    } catch (err) {
+      setToast({ message: 'Failed to resend OTP code.', type: 'error' });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const openForgotModal = () => {
+    setResetEmail(email || '');
+    setResetOtp('');
+    setResetStep(1);
+    setShowForgotModal(true);
   };
 
   return (
@@ -118,9 +207,18 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5 font-mono">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 font-mono">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={openForgotModal}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
@@ -203,6 +301,133 @@ export default function Login() {
 
         </div>
       </div>
+
+      {/* Forgot Password / Reset Account Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setShowForgotModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center mx-auto mb-3">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Reset Account & Password</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                {resetStep === 1
+                  ? 'Enter your registered academic email to receive a 6-digit verification code.'
+                  : `We sent a 6-digit OTP to ${resetEmail}. Verify to reset your credentials.`}
+              </p>
+            </div>
+
+            {/* Step 1: Request OTP */}
+            {resetStep === 1 && (
+              <form onSubmit={handleSendResetOtp} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5 font-mono">
+                    Registered Academic Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      placeholder="student@vitapstudent.ac.in"
+                      className="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-sm"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-semibold text-sm shadow-glow hover:shadow-glow-cyan transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {resetLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Send Verification OTP</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* Step 2: Verify OTP & Reset */}
+            {resetStep === 2 && (
+              <form onSubmit={handleVerifyResetOtp} className="space-y-4">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                  <span>
+                    Upon successful OTP verification, your old password and credentials will be cleared so you can re-register freshly.
+                  </span>
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={resetOtp}
+                    onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="• • • • • •"
+                    className="w-full text-center tracking-[0.75em] text-2xl font-mono py-3 rounded-xl glass-input border-indigo-500/40 text-white font-bold"
+                    autoFocus
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={resetLoading || resetOtp.length !== 6}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 text-white font-semibold text-sm shadow-glow hover:shadow-glow-cyan transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {resetLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Verify & Reset Account</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => setResetStep(1)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ← Change Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResendResetOtp}
+                    disabled={resending}
+                    className="text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${resending ? 'animate-spin' : ''}`} />
+                    <span>Resend OTP</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

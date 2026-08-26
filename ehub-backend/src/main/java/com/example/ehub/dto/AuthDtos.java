@@ -66,6 +66,22 @@ public class AuthDtos {
         String email
     ) {}
 
+    public record ForgotPasswordRequest(
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email format")
+        String email
+    ) {}
+
+    public record ResetAccountVerifyRequest(
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email format")
+        String email,
+
+        @NotBlank(message = "OTP code is required")
+        @Size(min = 6, max = 6, message = "OTP must be 6 digits")
+        String otpCode
+    ) {}
+
     public record UserProfileDto(
         Long id,
         String fullName,

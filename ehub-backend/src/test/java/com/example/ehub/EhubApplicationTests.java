@@ -42,6 +42,9 @@ class EhubApplicationTests {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private OtpStore otpStore;
+
     private User organizer;
     private User participant;
 
@@ -130,5 +133,28 @@ class EhubApplicationTests {
         // Unlock by eventCode
         EventResponseDto unlocked = eventService.unlockEventByCode(created.eventCode());
         assertEquals(created.id(), unlocked.id());
+    }
+
+    @Test
+    @DisplayName("Test Forgot Password & Account Reset With OTP Verification")
+    void testForgotPasswordAndAccountReset() {
+        String testEmail = "temp.user@vitapstudent.ac.in";
+        User tempUser = new User("Temp User", testEmail, "22BCE8888", passwordEncoder.encode("OldPass123!"), Role.ROLE_PARTICIPANT);
+        userRepository.save(tempUser);
+
+        assertTrue(userRepository.existsByEmail(testEmail));
+
+        // Attempt verification with invalid OTP
+        assertFalse(otpStore.verifyOtp(testEmail, "000000"));
+        // User should still exist in DB
+        assertTrue(userRepository.existsByEmail(testEmail));
+
+        // Generate valid OTP
+        String validOtp = otpStore.generateAndStoreOtp(testEmail);
+        assertTrue(otpStore.verifyOtp(testEmail, validOtp));
+
+        // Reset user
+        userRepository.delete(tempUser);
+        assertFalse(userRepository.existsByEmail(testEmail));
     }
 }
