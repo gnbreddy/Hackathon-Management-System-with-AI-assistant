@@ -1,12 +1,11 @@
-services:
-  # 1. PostgreSQL Relational Database
-  - type: postgres
-    name: ehub-postgres
+databases:
+  - name: ehub-postgres
     databaseName: ehub_db
     user: ehub_user
     plan: free
 
-  # 2. Spring Boot REST Backend
+services:
+  # 1. Spring Boot REST Backend
   - type: web
     name: ehub-backend
     runtime: docker
@@ -22,7 +21,7 @@ services:
       - key: APPLICATION_CORS_ALLOWED_ORIGINS
         value: "*"
 
-  # 3. React Vite SPA Frontend
+  # 2. React Vite SPA Frontend
   - type: web
     name: ehub-ui
     runtime: static
