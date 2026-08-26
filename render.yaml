@@ -35,4 +35,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://ehub-backend.onrender.com/api
+        value: https://ehub-backend-nham.onrender.com/api
